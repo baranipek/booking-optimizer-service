@@ -12,6 +12,7 @@ import com.booking.optimizer.repository.CustomerSegmentLimitRepository;
 import com.booking.optimizer.utility.ListOperationsUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,11 +45,12 @@ public class BookingOptimizerService {
 
     public BookingOptimizerResponse optimize(BookingOptimizerRequest request) {
         Collections.sort(request.getCustomerPaymentList(), Collections.reverseOrder());
-
-        this.initCustomerRequest(request);
-        BookingOptimizerResponse response = new BookingOptimizerResponse();
         List<Customer> allCustomers = (List<Customer>) customerRepository.findAll();
 
+        if (CollectionUtils.isEmpty(allCustomers)) {
+            this.initCustomerRequest(request);
+        }
+        BookingOptimizerResponse response = new BookingOptimizerResponse();
         List<Customer> economyPaymentList = new ArrayList<>();
         List<Customer> premiumPaymentList = new ArrayList<>();
 
@@ -61,7 +63,6 @@ public class BookingOptimizerService {
         this.bookPremiumRooms(premiumPaymentList, response, request.getFreePremiumRoomCount());
 
         this.upgradeEconomyCustomer(economyPaymentList.get(0));
-
         return response;
     }
 
@@ -96,7 +97,6 @@ public class BookingOptimizerService {
      */
     private void bookPremiumRooms(List<Customer> premiumPaymentList, BookingOptimizerResponse response,
                                   int freePremiumRoomCount) {
-
         List<Customer> premiumRoomsUsedList;
         if (freePremiumRoomCount <= premiumPaymentList.size()) {
             premiumRoomsUsedList = premiumPaymentList.stream().limit(freePremiumRoomCount).collect(Collectors.toList());
@@ -114,18 +114,16 @@ public class BookingOptimizerService {
      * @param request holds the request to check is this first request or not
      */
     private void initCustomerRequest(BookingOptimizerRequest request) {
-        if (customerRepository.count() == 0) {
-            CustomerSegmentLimit limit = new CustomerSegmentLimit();
-            limit.setCustomerSegmentationLimit(100);
+        CustomerSegmentLimit limit = new CustomerSegmentLimit();
+        limit.setCustomerSegmentationLimit(100);
 
-            customerRepository.saveAll(mapper.map(request));
-            customerSegmentLimitRepository.save(limit);
-        }
+        customerRepository.saveAll(mapper.map(request));
+        customerSegmentLimitRepository.save(limit);
     }
 
 
     /**
-     * upgrade the economy customer
+     * upgrade the highest payed economy customer to premium
      *
      * @param customer Customer entity
      */
