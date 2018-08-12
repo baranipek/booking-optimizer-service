@@ -16,8 +16,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
-
 
 @SpringBootTest
 @SpringBootConfiguration
@@ -45,6 +43,31 @@ public class BookingOptimizerServiceTest {
 
         Assert.assertEquals(bookingOptimizer.optimize(BookingOptimizerRequest.builder().freeEconomyRoomCount(3).
                 freePremiumRoomCount(3).customerPaymentList(customerPayingList).build()), expectedResponse);
+    }
+
+
+    @Test
+    public void shouldReturnSixFreePremiumRoomAndFourFreeEconomy() throws Exception {
+        BookingOptimizerResponse expectedResponse = new BookingOptimizerResponse();
+        expectedResponse.setEconomyRoomTotalRevenue(189);
+        expectedResponse.setPremiumRoomTotalRevenue(1054);
+        expectedResponse.setUsedEconomyRoomCount(4);
+        expectedResponse.setUsedPremiumRoomCount(6);
+
+        Assert.assertEquals(bookingOptimizer.optimize(BookingOptimizerRequest.builder().freeEconomyRoomCount(5).
+                freePremiumRoomCount(7).customerPaymentList(customerPayingList).build()), expectedResponse);
+    }
+
+    @Test
+    public void shouldReturnSixFourPremiumRoomAndFourFreeEconomy2() throws Exception {
+        BookingOptimizerResponse expectedResponse = new BookingOptimizerResponse();
+        expectedResponse.setEconomyRoomTotalRevenue(189);
+        expectedResponse.setPremiumRoomTotalRevenue(583);
+        expectedResponse.setUsedEconomyRoomCount(4);
+        expectedResponse.setUsedPremiumRoomCount(2);
+
+        Assert.assertEquals(bookingOptimizer.optimize(BookingOptimizerRequest.builder().freeEconomyRoomCount(7).
+                freePremiumRoomCount(2).customerPaymentList(customerPayingList).build()), expectedResponse);
     }
 
 
