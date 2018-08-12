@@ -65,8 +65,52 @@ public class BookingOptimizerService {
         return response;
     }
 
+
+    /**
+     * book the economy first
+     *
+     * @param economyPaymentList   holds customer payments amount for economy
+     * @param response             holds the response to be set
+     * @param freeEconomyRoomCount free economy rooms at hotel
+     */
+    private void bookEconomyRooms(List<Customer> economyPaymentList, BookingOptimizerResponse response,
+                                  int freeEconomyRoomCount) {
+        List<Customer> economyRoomsUsedList;
+        if (freeEconomyRoomCount <= economyPaymentList.size()) {
+            economyRoomsUsedList = economyPaymentList.stream().limit(freeEconomyRoomCount).collect(Collectors.toList());
+            response.setEconomyRoomTotalRevenue(economyRoomsUsedList.stream().mapToInt(Customer::getCustomerPayment).sum());
+            response.setUsedEconomyRoomCount(economyRoomsUsedList.size());
+        } else {
+            response.setEconomyRoomTotalRevenue(economyPaymentList.stream().mapToInt(Customer::getCustomerPayment).sum());
+            response.setUsedEconomyRoomCount(economyPaymentList.size());
+        }
+
+    }
+
+    /**
+     * book the premium then
+     *
+     * @param premiumPaymentList   holds customer payments amount for premium
+     * @param response             holds the response to be set
+     * @param freePremiumRoomCount free premium rooms at hotel
+     */
+    private void bookPremiumRooms(List<Customer> premiumPaymentList, BookingOptimizerResponse response,
+                                  int freePremiumRoomCount) {
+
+        List<Customer> premiumRoomsUsedList;
+        if (freePremiumRoomCount <= premiumPaymentList.size()) {
+            premiumRoomsUsedList = premiumPaymentList.stream().limit(freePremiumRoomCount).collect(Collectors.toList());
+            response.setPremiumRoomTotalRevenue(premiumRoomsUsedList.stream().mapToInt(Customer::getCustomerPayment).sum());
+            response.setUsedPremiumRoomCount(premiumRoomsUsedList.size());
+        } else {
+            response.setPremiumRoomTotalRevenue(premiumPaymentList.stream().mapToInt(Customer::getCustomerPayment).sum());
+            response.setUsedPremiumRoomCount(premiumPaymentList.size());
+        }
+    }
+
     /**
      * save the request for the initial request.
+     *
      * @param request holds the request to check is this first request or not
      */
     private void initCustomerRequest(BookingOptimizerRequest request) {
@@ -88,43 +132,6 @@ public class BookingOptimizerService {
     private void upgradeEconomyCustomer(Customer customer) {
         customer.setSegment(CustomerSegment.PREMIUM);
         customerRepository.save(customer);
-    }
-
-
-    /**
-     * book the economy first
-     *
-     * @param economyPaymentList   holds customer payments amount for economy
-     * @param response             holds the response to be set
-     * @param freeEconomyRoomCount free economy rooms at hotel
-     */
-    private void bookEconomyRooms(List<Customer> economyPaymentList, BookingOptimizerResponse response,
-                                  int freeEconomyRoomCount) {
-        List<Customer> economyRoomsUsedList;
-        if (freeEconomyRoomCount <= economyPaymentList.size()) {
-            economyRoomsUsedList = economyPaymentList.stream().limit(freeEconomyRoomCount).collect(Collectors.toList());
-            response.setEconomyRoomTotalRevenue(economyRoomsUsedList.stream().mapToInt(Customer::getCustomerPayment).sum());
-            response.setUsedEconomyRoomCount(economyRoomsUsedList.size());
-        }
-
-    }
-
-    /**
-     * book the premium then
-     *
-     * @param premiumPaymentList   holds customer payments amount for premium
-     * @param response             holds the response to be set
-     * @param freePremiumRoomCount free premium rooms at hotel
-     */
-    private void bookPremiumRooms(List<Customer> premiumPaymentList, BookingOptimizerResponse response,
-                                  int freePremiumRoomCount) {
-
-        List<Customer> premiumRoomsUsedList;
-        if (freePremiumRoomCount <= premiumPaymentList.size()) {
-            premiumRoomsUsedList = premiumPaymentList.stream().limit(freePremiumRoomCount).collect(Collectors.toList());
-            response.setPremiumRoomTotalRevenue(premiumRoomsUsedList.stream().mapToInt(Customer::getCustomerPayment).sum());
-            response.setUsedPremiumRoomCount(premiumRoomsUsedList.size());
-        }
     }
 
 }
